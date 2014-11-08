@@ -1,0 +1,471 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Health and Economic Impact of Weather Events in the US by shinezhou9</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Health and Economic Impact of Weather Events in the US</h1>
+        <p>Reproducible Research Project2</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/shinezhou9/Rep_project2" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/shinezhou9/Rep_project2/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/shinezhou9/Rep_project2/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>
+<a id="health-and-economic-impact-of-weather-events-in-the-us" class="anchor" href="#health-and-economic-impact-of-weather-events-in-the-us" aria-hidden="true"><span class="octicon octicon-link"></span></a>Health and Economic Impact of Weather Events in the US?</h1>
+
+<h2>
+<a id="synopsis" class="anchor" href="#synopsis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Synopsis:</h2>
+
+<ol>
+<li>Objective: explore the NOAA Storm Database to find out the most severe types of events(EVTYPE variable) with respect to population health and economic consequences.</li>
+<li>Population health include two related variables: "FATALITIES(fatalities number)", "INJURIES(injuries number)". Here I made statistics analysis seperately on these two variables.</li>
+<li>Economic consequeces include four related variables: "PROPDMG(property damage number)", "PROPDMGEXP(exponent for property damage)", "CROPDMG(crop damage number)", "CROPDMGEXP(exponent for crop damage)". I make statictic analysis based on the sum of property and crop damages costs.</li>
+<li>We ranked the top 10 weather event types for each index. From the plots showed on this report, we can see top10 has include the most severe weather event types.</li>
+<li>Conclusion: Across the United States, Tornado is the most severe event type with respect to population health; Flood is the most severe event type with respect to economic consequences. </li>
+</ol>
+
+<h2>
+<a id="data" class="anchor" href="#data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data</h2>
+
+<ul>
+<li>Dataset: U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database <a href="https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2">storm data</a>
+</li>
+<li>This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.</li>
+<li>The dataset is stored in a comma-separated-value file compressed via the bzip2 algorithm to reduce its size and there are a total of 902297 observations and 37 variables in this dataset</li>
+</ul>
+
+<h2>
+<a id="cleaning-up-data-stratergies" class="anchor" href="#cleaning-up-data-stratergies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cleaning up data stratergies.</h2>
+
+<h3>
+<a id="1-merging-entype-similar-names" class="anchor" href="#1-merging-entype-similar-names" aria-hidden="true"><span class="octicon octicon-link"></span></a>1. Merging ENTYPE similar names:</h3>
+
+<p>EVTYPE variable includes many names which are similar with each other. We need to clean up them and merge the similar ones. But since there are hundreds of different event types names, it is a time costly work we clean one by one. </p>
+
+<ul>
+<li>sort ENTYPE in normal ways based on the fatalities number regardless of the ENTYPE, and then merge the similar ENTYPE names only for top20 fatalities causing event types. </li>
+<li>And then sort ENTYPE in normal ways based on the injuries number regardless of the ENTYPE, and then merge the similar ENTYPE names only for top20 injuries causing event types. </li>
+<li>At last sort ENTYPE in normal ways based on the economic loss regardless of the ENTYPE, and then merge the similar ENTYPE names only for top20 economic loss causing event types.</li>
+<li>In this way, we merged three times. Cleaning up the top20 rows each time makes sure that no similar event types exist in top 10(will rank top 10 severe weather events) when we rank the ENTYPE based on whichever consequence.</li>
+</ul>
+
+<h3>
+<a id="2processing-cropdmgexp--propdmgexp" class="anchor" href="#2processing-cropdmgexp--propdmgexp" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.Processing "CROPDMGEXP" &amp; "PROPDMGEXP"</h3>
+
+<p>we will process "CROPDMGEXP" &amp; "PROPDMGEXP" variables to numbers to calculate the economic damage loss of property and crop damage("CROPDMG" &amp; "PROPDMG"). 
+'EXP' is regarded as exponent.Treated the exponent values in form of characters as follows:</p>
+
+<ul>
+<li>'?', '+' and '-'  exp value = 'NA'</li>
+<li>'h/H' means hundred, exp value = 2</li>
+<li>'k/K' means 'thousand', exp value = 3</li>
+<li>'m/M' means 'million' , exp value = 6</li>
+<li>'b/B',means billion, exp value of 9
+compute economic damage loss in dollars as following
+x("CROPDMGEXP"/"PROPDMGEXP" ) * 10^exp value("CROPDMGEXP" / "PROPDMGEXP" )</li>
+</ul>
+
+<h2>
+<a id="data-processing" class="anchor" href="#data-processing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data Processing</h2>
+
+<h3>
+<a id="1load-and-read-the-data" class="anchor" href="#1load-and-read-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>1.load and read the data</h3>
+
+<div class="highlight highlight-r"><pre>library(<span class="nv">downloader</span>)
+download(<span class="s2">"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"</span>, <span class="nv">destfile</span> <span class="o">=</span> <span class="s2">"StormData.csv.bz2"</span>)
+<span class="nv">storm</span> <span class="o">&lt;-</span> read.csv(<span class="s2">"Stormdata.csv.bz2"</span>, <span class="nv">stringsAsFactors</span> <span class="o">=</span> <span class="kc">FALSE</span>, <span class="nv">header</span> <span class="o">=</span> <span class="kc">TRUE</span>)</pre></div>
+
+<h3>
+<a id="2select-useful-data" class="anchor" href="#2select-useful-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.Select useful data</h3>
+
+<div class="highlight highlight-r"><pre><span class="c1">#select only the data related with "population health" and "economic consequences", store them to the new dataframe</span>
+<span class="nv">storm1</span> <span class="o">&lt;-</span> <span class="nv">storm</span>[ , c(<span class="s2">"EVTYPE"</span>, <span class="s2">"FATALITIES"</span>, <span class="s2">"INJURIES"</span>, <span class="s2">"PROPDMG"</span>, <span class="s2">"PROPDMGEXP"</span>, <span class="s2">"CROPDMG"</span>, <span class="s2">"CROPDMGEXP"</span>)]</pre></div>
+
+<h3>
+<a id="3processing-similar-event-types-and--prpgdmgexp--cropdmgexp-variables" class="anchor" href="#3processing-similar-event-types-and--prpgdmgexp--cropdmgexp-variables" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.Processing similar event types and  PRPGDMGEXP &amp; CROPDMGEXP variables.</h3>
+
+<p>please see <strong>Cleaning up data stratergies</strong> section part1 for instructions.</p>
+
+<h4>
+<a id="31-sort-and-select-top20-evtype-based-on-fatalities-number" class="anchor" href="#31-sort-and-select-top20-evtype-based-on-fatalities-number" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.1 sort and select top20 EVTYPE based on fatalities number.</h4>
+
+<div class="highlight highlight-r"><pre><span class="c1">#calculate sum of fatalities number for each EVTYPE, store the values in  dataframe *storm_fatal* .</span>
+library(<span class="nv">plyr</span>)
+<span class="nv">storm_fatal</span> <span class="o">&lt;-</span> ddply(<span class="nv">storm1</span>,.(<span class="nv">EVTYPE</span>), <span class="nv">summarize</span>, <span class="nv">sum_fatal</span> <span class="o">=</span> sum(<span class="nv">FATALITIES</span>))
+<span class="c1">#sort *storm_fatal* in decreasing order based on sum_fatal value and store in a new dataframe *fatal_order*.</span>
+<span class="nv">fatal_order</span> <span class="o">&lt;-</span> <span class="nv">storm_fatal</span>[order(<span class="nv">storm_fatal</span><span class="k">$</span><span class="nv">sum_fatal</span>, <span class="nv">decreasing</span> <span class="o">=</span> <span class="kc">TRUE</span>),]
+<span class="c1">#look up top 20 fatal_order data </span>
+<span class="nv">h1</span> <span class="o">&lt;-</span> head(<span class="nv">fatal_order</span>, <span class="m">20</span>)
+<span class="nv">h1</span>[order(<span class="nv">h1</span><span class="k">$</span><span class="nv">EVTYPE</span>),]</pre></div>
+
+<pre><code>##                      EVTYPE sum_fatal
+## 19                AVALANCHE       224
+## 30                 BLIZZARD       101
+## 130          EXCESSIVE HEAT      1903
+## 140            EXTREME COLD       160
+## 141 EXTREME COLD/WIND CHILL       125
+## 153             FLASH FLOOD       978
+## 170                   FLOOD       470
+## 275                    HEAT       937
+## 278               HEAT WAVE       172
+## 310              HEAVY SNOW       127
+## 350               HIGH SURF       101
+## 359               HIGH WIND       248
+## 464               LIGHTNING       816
+## 585             RIP CURRENT       368
+## 586            RIP CURRENTS       204
+## 676             STRONG WIND       103
+## 760       THUNDERSTORM WIND       133
+## 834                 TORNADO      5633
+## 856               TSTM WIND       504
+## 972            WINTER STORM       206
+</code></pre>
+
+<h4>
+<a id="32-clean-up-evtype-names-after-observing-top20-rows-of-fatal_order" class="anchor" href="#32-clean-up-evtype-names-after-observing-top20-rows-of-fatal_order" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.2 clean up EVTYPE names after observing top20 rows of <em>fatal_order</em>
+</h4>
+
+<p>make similar EVTYPE names be the same(only considering top20 EVTYPE for fatalities).
+EVTYPE names are changed based on the following rules</p>
+
+<ul>
+<li>"FLASH FLOOD|HEAVY RAIN" - "FLOOD", </li>
+<li>".*HEAT"-"HEAT"</li>
+<li>"HEAT WAVE"-"HEAT"</li>
+<li>"EXTREME COLD"-"WIND CHILL"</li>
+<li>"BLIZZARD|HEAVY SNOW|ICE STORM" - "WINTER STORM"</li>
+<li>"RIP CURRENTS|HIGH SURF" - "RIP CURRENT"</li>
+<li>".*WIND"- "WIND"</li>
+<li>"WINDS"-"WIND"</li>
+</ul>
+
+<div class="highlight highlight-r"><pre><span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"FLASH FLOOD|HEAVY RAIN"</span>, <span class="s2">"FLOOD"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">".*HEAT"</span>,<span class="s2">"HEAT"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"HEAT WAVE"</span>,<span class="s2">"HEAT"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"EXTREME COLD"</span>,<span class="s2">"WIND CHILL"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"BLIZZARD|HEAVY SNOW|ICE STORM"</span>,<span class="s2">"WINTER STORM"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"RIP CURRENTS|HIGH SURF"</span>,<span class="s2">"RIP CURRENT"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"WINDS"</span>,<span class="s2">"WIND"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"(.*)WIND"</span>,<span class="s2">"WIND"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)</pre></div>
+
+<h4>
+<a id="33-sort-and-select-top20-evtype-based-on-injurises-number" class="anchor" href="#33-sort-and-select-top20-evtype-based-on-injurises-number" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.3 sort and select top20 EVTYPE based on injurises number.</h4>
+
+<div class="highlight highlight-r"><pre><span class="c1">#calculate sum of injuries number for each EVTYPE, store the values in  dataframe *storm_injur* .</span>
+<span class="nv">storm_injur</span> <span class="o">&lt;-</span> ddply(<span class="nv">storm1</span>,.(<span class="nv">EVTYPE</span>), <span class="nv">summarize</span>, <span class="nv">sum_injur</span> <span class="o">=</span> sum(<span class="nv">INJURIES</span>))
+<span class="c1">#sort *storm_injur* in decreasing order based on sum_injur value and store in a new dataframe *injur_order*.</span>
+<span class="nv">injur_order</span> <span class="o">&lt;-</span> <span class="nv">storm_injur</span>[order(<span class="nv">storm_injur</span><span class="k">$</span><span class="nv">sum_injur</span>, <span class="nv">decreasing</span> <span class="o">=</span> <span class="kc">TRUE</span>),]
+<span class="c1">#look up top 20 injur_order data </span>
+<span class="nv">h2</span> <span class="o">&lt;-</span> head(<span class="nv">injur_order</span>, <span class="m">20</span>)
+<span class="nv">h2</span>[order(<span class="nv">h2</span><span class="k">$</span><span class="nv">EVTYPE</span>),]</pre></div>
+
+<pre><code>##                EVTYPE sum_injur
+## 16          AVALANCHE       170
+## 70          DENSE FOG       342
+## 94         DUST STORM       440
+## 121             FLOOD      8817
+## 155               FOG       734
+## 189             GLAZE       216
+## 202              HAIL      1361
+## 231              HEAT      9139
+## 281 HURRICANE/TYPHOON      1275
+## 330         LIGHTNING      5230
+## 432       RIP CURRENT       681
+## 601           TORNADO     91346
+## 614    TROPICAL STORM       340
+## 698        WILD FIRES       150
+## 699  WILD/FOREST FIRE       545
+## 701          WILDFIRE       911
+## 704              WIND     11310
+## 756        WIND CHILL       267
+## 813      WINTER STORM      5122
+## 836    WINTER WEATHER       398
+</code></pre>
+
+<h4>
+<a id="34-clean-up-evtype-names-again-after-observing-top20-rows-of-injur_order" class="anchor" href="#34-clean-up-evtype-names-again-after-observing-top20-rows-of-injur_order" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.4 clean up EVTYPE names again after observing top20 rows of <em>injur_order</em>
+</h4>
+
+<p>make similar EVTYPE names be the same(only considering top20 EVTYPE for injuries).
+EVTYPE names are changed based on the following rules:</p>
+
+<ul>
+<li>"DENSE FOG"-"FOG"</li>
+<li>"WILD/FOREST FIRE|WILDFIRE"-"WILD FIRES"</li>
+<li>"WINTER WEATHER"-"WINTER STORM" </li>
+<li>"TROPICAL STORM"-"HEAT"</li>
+</ul>
+
+<div class="highlight highlight-r"><pre><span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"DENSE FOG"</span>, <span class="s2">"FOG"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"WILD/FOREST FIRE|WILDFIRE"</span>, <span class="s2">"WILD FIRES"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"WINTER WEATHER"</span>, <span class="s2">"WINTER STORM"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"TROPICAL STORM"</span>,<span class="s2">"HEAT"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)</pre></div>
+
+<h4>
+<a id="35processing-cropdmgexp--propdmgexp-variables-to-numbers" class="anchor" href="#35processing-cropdmgexp--propdmgexp-variables-to-numbers" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.5.processing "CROPDMGEXP" &amp; "PROPDMGEXP" variables to numbers.</h4>
+
+<p>please see <strong>Cleaning up data stratergies</strong> section part2 for instructions.</p>
+
+<div class="highlight highlight-r"><pre><span class="c1">#process CROPDMGEXP variable</span>
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"<span class="sc">\\</span>?"</span>, <span class="s2">"NA"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"k|K"</span>, <span class="s2">"3"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"m|M"</span>, <span class="s2">"6"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"b|B"</span>, <span class="s2">"9"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span>)
+<span class="c1">#process PROPDMGEXP variable</span>
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"<span class="sc">\\</span>?|<span class="sc">\\</span>+|<span class="sc">\\</span>-"</span>, <span class="s2">"NA"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"h|H"</span>, <span class="s2">"2"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"k|K"</span>, <span class="s2">"3"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"m|M"</span>, <span class="s2">"6"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span> <span class="o">&lt;-</span> gsub(<span class="s2">"b|B"</span>, <span class="s2">"9"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span>)
+<span class="c1">#change CROPDMGEXP &amp; PROPDMGEXP values to numeric vectors</span>
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span> <span class="o">&lt;-</span> as.numeric(<span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span>)</pre></div>
+
+<pre><code>## Warning: NAs introduced by coercion
+</code></pre>
+
+<div class="highlight highlight-r"><pre><span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span> <span class="o">&lt;-</span> as.numeric(<span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span>)</pre></div>
+
+<pre><code>## Warning: NAs introduced by coercion
+</code></pre>
+
+<h4>
+<a id="36-add-corpdmg--propdmg-up-to-sort-and-select-top20-evtype-based-on-economic-loss" class="anchor" href="#36-add-corpdmg--propdmg-up-to-sort-and-select-top20-evtype-based-on-economic-loss" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.6 add CORPDMG &amp; PROPDMG up to sort and select top20 EVTYPE based on economic loss</h4>
+
+<div class="highlight highlight-r"><pre><span class="c1">#calculate CROPDMG &amp; PROPDMG loss for each event seperately(compute values as x * 10^exp value) and store the value on a new dataframe **ecoloss**.</span>
+<span class="nv">ecoloss</span> <span class="o">&lt;-</span> <span class="kt">data.frame</span>(<span class="nv">prop_loss</span> <span class="o">=</span> <span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMG</span><span class="o">*</span>(<span class="m">10</span><span class="o">^</span><span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span>), <span class="nv">crop_loss</span> <span class="o">=</span> <span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMG</span><span class="o">*</span>(<span class="m">10</span><span class="o">^</span><span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span>))
+<span class="c1">#calculate total loss of ROPDMG and PROPDMG (rowSums) for each event and add this column "total_loss" to *ecoloss*</span>
+<span class="nv">ecoloss</span><span class="k">$</span><span class="nv">total_loss</span> <span class="o">&lt;-</span> rowSums(<span class="nv">ecoloss</span>, <span class="nv">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span>)
+<span class="c1">#add EVTYPE column to ecoloss</span>
+<span class="nv">ecoloss</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>
+
+<span class="c1">#calculate total loss for each EVTYPE, store the values in a new dataframe *storm_ecoloss*</span>
+<span class="nv">storm_ecoloss</span> <span class="o">&lt;-</span> ddply(<span class="nv">ecoloss</span>,.(<span class="nv">EVTYPE</span>), <span class="nv">summarize</span>, <span class="nv">sum_eco</span> <span class="o">=</span> sum(<span class="nv">total_loss</span>))
+<span class="c1">#sort the EVTYPE in decreasing order based on sum_eco value and store the ordered data in a new dataframe *ecoloss_order* </span>
+<span class="nv">ecoloss_order</span> <span class="o">&lt;-</span> <span class="nv">storm_ecoloss</span>[order(<span class="nv">storm_ecoloss</span><span class="k">$</span><span class="nv">sum_eco</span>, <span class="nv">decreasing</span> <span class="o">=</span> <span class="kc">TRUE</span>),]
+<span class="c1">#look up top 20 ecoloss_order data </span>
+<span class="nv">h3</span> <span class="o">&lt;-</span> head(<span class="nv">ecoloss_order</span>, <span class="m">20</span>)
+<span class="nv">h3</span>[order(<span class="nv">h3</span><span class="k">$</span><span class="nv">EVTYPE</span>),]</pre></div>
+
+<pre><code>##                   EVTYPE   sum_eco
+## 74               DROUGHT 1.502e+10
+## 120                FLOOD 1.700e+11
+## 143 FLOOD/SEVERE WEATHER 2.500e+09
+## 178         FROST/FREEZE 1.104e+09
+## 201                 HAIL 1.876e+10
+## 230                 HEAT 9.307e+09
+## 276            HURRICANE 1.461e+10
+## 282       HURRICANE OPAL 3.192e+09
+## 284    HURRICANE/TYPHOON 7.191e+10
+## 333            LIGHTNING 9.425e+08
+## 441          RIVER FLOOD 1.015e+10
+## 455  SEVERE THUNDERSTORM 1.206e+09
+## 514          STORM SURGE 4.332e+10
+## 515     STORM SURGE/TIDE 4.642e+09
+## 604              TORNADO 5.736e+10
+## 696           WILD FIRES 8.793e+09
+## 699                 WIND 1.823e+10
+## 751           WIND CHILL 1.372e+09
+## 779           WIND, HAIL 1.602e+09
+## 808         WINTER STORM 1.756e+10
+</code></pre>
+
+<h4>
+<a id="37-clean-up-evtype-names-once-again-after-observing-top20-rows-of-ecoloss_order" class="anchor" href="#37-clean-up-evtype-names-once-again-after-observing-top20-rows-of-ecoloss_order" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.7 clean up EVTYPE names once again after observing top20 rows of <em>ecoloss_order</em>
+</h4>
+
+<p>make similar EVTYPE names be the same(only considering top20 EVTYPE for economic loss).
+EVTYPE names are changed based on the following rules: </p>
+
+<ul>
+<li>"FLOOD/SEVERE WEATHER|RIVER FLOOD"- "FLOOD",</li>
+<li>"FROST/FREEZE"-"WINTER STORM"</li>
+<li>"HURRICANE/TYPHOON|HURRICAN OPAL" - "HURRICANE"</li>
+<li>"STORM SURGE|STORM SURGE/TIDE" - "RIP CURRENT"</li>
+<li>"WIND, HAIL" - "HAIL"</li>
+<li>"LIGHTNING" - "SEVERE THUNDERSTORM"</li>
+</ul>
+
+<div class="highlight highlight-r"><pre><span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"FLOOD/SEVERE WEATHER|RIVER FLOOD"</span>,<span class="s2">"FLOOD"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"FROST/FREEZE"</span>, <span class="s2">"WINTER STORM"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"HURRICANE/TYPHOON|HURRICAN OPAL"</span>, <span class="s2">"HURRICANE"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"STORM SURGE|STORM SURGE/TIDE"</span>, <span class="s2">"RIP CURRENT"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"WIND, HAIL"</span>,<span class="s2">"HAIL"</span>,<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)
+<span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> gsub(<span class="s2">"LIGHTNING"</span>, <span class="s2">"SEVERE THUNDERSTORM"</span>, <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>)</pre></div>
+
+<h3>
+<a id="4-get-the-top-10-event-types-after-merging-similar-evtype" class="anchor" href="#4-get-the-top-10-event-types-after-merging-similar-evtype" aria-hidden="true"><span class="octicon octicon-link"></span></a>4. Get the top 10 event types after merging similar EVTYPE.</h3>
+
+<h4>
+<a id="41top-10-event-types-with-respect-to-fatalities-number" class="anchor" href="#41top-10-event-types-with-respect-to-fatalities-number" aria-hidden="true"><span class="octicon octicon-link"></span></a>4.1.top 10 event types with respect to fatalities number</h4>
+
+<div class="highlight highlight-r"><pre><span class="c1">#repeat step 3.1 </span>
+<span class="c1">#calculate sum of fatalities number for each EVTYPE, </span>
+<span class="c1">#sort EVTYPE in decreasing order based on sum_fatal value.</span>
+<span class="nv">storm_fatal_revised</span> <span class="o">&lt;-</span> ddply(<span class="nv">storm1</span>,.(<span class="nv">EVTYPE</span>), <span class="nv">summarize</span>, <span class="nv">sum_fatal</span> <span class="o">=</span> sum(<span class="nv">FATALITIES</span>))
+<span class="nv">fatal_order_revised</span> <span class="o">&lt;-</span> <span class="nv">storm_fatal_revised</span>[order(<span class="nv">storm_fatal_revised</span><span class="k">$</span><span class="nv">sum_fatal</span>, <span class="nv">decreasing</span> <span class="o">=</span> <span class="kc">TRUE</span>),]
+
+<span class="c1">#selet only top 10 rows and change the unit of fatalities number to "thousand".</span>
+<span class="nv">fatal_top</span> <span class="o">&lt;-</span> <span class="nv">fatal_order_revised</span>[<span class="m">1</span><span class="k">:</span><span class="m">10</span>,]
+<span class="nv">fatal_top</span><span class="k">$</span><span class="nv">sum_fatal</span> <span class="o">&lt;-</span> <span class="nv">fatal_top</span><span class="k">$</span><span class="nv">sum_fatal</span><span class="o">/</span><span class="m">1000</span>
+<span class="nv">fatal_top</span></pre></div>
+
+<pre><code>##                  EVTYPE sum_fatal
+## 595             TORNADO     5.633
+## 227                HEAT     3.187
+## 120               FLOOD     1.548
+## 690                WIND     1.165
+## 440 SEVERE THUNDERSTORM     0.816
+## 422         RIP CURRENT     0.697
+## 798        WINTER STORM     0.556
+## 742          WIND CHILL     0.380
+## 16            AVALANCHE     0.224
+## 273           HURRICANE     0.125
+</code></pre>
+
+<h4>
+<a id="42-get-top-10-event-types-with-respect-to-injuries-number" class="anchor" href="#42-get-top-10-event-types-with-respect-to-injuries-number" aria-hidden="true"><span class="octicon octicon-link"></span></a>4.2 get top 10 event types with respect to injuries number</h4>
+
+<div class="highlight highlight-r"><pre><span class="c1">#repeat step 3.3</span>
+<span class="c1">#calculate sum of injuries number for each EVTYPE, </span>
+<span class="c1">#sort EVTYPE in decreasing order based on sum_injur value.</span>
+<span class="nv">storm_injur_revised</span> <span class="o">&lt;-</span> ddply(<span class="nv">storm1</span>,.(<span class="nv">EVTYPE</span>), <span class="nv">summarize</span>, <span class="nv">sum_injur</span> <span class="o">=</span> sum(<span class="nv">INJURIES</span>))
+<span class="nv">injur_order_revised</span> <span class="o">&lt;-</span> <span class="nv">storm_injur_revised</span>[order(<span class="nv">storm_injur_revised</span><span class="k">$</span><span class="nv">sum_injur</span>, <span class="nv">decreasing</span> <span class="o">=</span> <span class="kc">TRUE</span>),]
+
+<span class="c1">##selet only top 10 rows and change the unit of injurises number to "thousand".</span>
+<span class="nv">injur_top</span> <span class="o">&lt;-</span> <span class="nv">injur_order_revised</span>[<span class="m">1</span><span class="k">:</span><span class="m">10</span>,]
+<span class="nv">injur_top</span><span class="k">$</span><span class="nv">sum_injur</span> <span class="o">&lt;-</span> <span class="nv">injur_top</span><span class="k">$</span><span class="nv">sum_injur</span><span class="o">/</span><span class="m">1000</span>
+<span class="nv">injur_top</span></pre></div>
+
+<pre><code>##                  EVTYPE sum_injur
+## 595             TORNADO    91.346
+## 690                WIND    11.310
+## 227                HEAT     9.479
+## 120               FLOOD     8.819
+## 798        WINTER STORM     5.520
+## 440 SEVERE THUNDERSTORM     5.230
+## 687          WILD FIRES     1.606
+## 198                HAIL     1.361
+## 273           HURRICANE     1.321
+## 152                 FOG     1.076
+</code></pre>
+
+<h4>
+<a id="43-get-top-10-event-types-with-respect-to-economic-loss" class="anchor" href="#43-get-top-10-event-types-with-respect-to-economic-loss" aria-hidden="true"><span class="octicon octicon-link"></span></a>4.3 get top 10 event types with respect to economic loss</h4>
+
+<div class="highlight highlight-r"><pre><span class="c1">#repeat step 3.6</span>
+<span class="c1">#calculate CROPDMG &amp; PROPDMG loss for each event seperately(compute values as x * 10^exp value) and store the value on a new dataframe *ecoloss_revised*.</span>
+<span class="nv">ecoloss_revised</span> <span class="o">&lt;-</span> <span class="kt">data.frame</span>(<span class="nv">prop_loss</span> <span class="o">=</span> <span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMG</span><span class="o">*</span>(<span class="m">10</span><span class="o">^</span><span class="nv">storm1</span><span class="k">$</span><span class="nv">PROPDMGEXP</span>), <span class="nv">crop_loss</span> <span class="o">=</span> <span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMG</span><span class="o">*</span>(<span class="m">10</span><span class="o">^</span><span class="nv">storm1</span><span class="k">$</span><span class="nv">CROPDMGEXP</span>))
+
+<span class="c1">#add ROPDMG and PROPDMG(rowSums) together for each event and add this column to *ecoloss_revised*</span>
+<span class="c1">#add EVTYPE column to ecoloss_revised</span>
+<span class="nv">ecoloss_revised</span><span class="k">$</span><span class="nv">total_loss</span> <span class="o">&lt;-</span> rowSums(<span class="nv">ecoloss_revised</span>, <span class="nv">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span>)
+<span class="nv">ecoloss_revised</span><span class="k">$</span><span class="nv">EVTYPE</span> <span class="o">&lt;-</span> <span class="nv">storm1</span><span class="k">$</span><span class="nv">EVTYPE</span>
+
+<span class="c1">#calculate total economic loss for each EVTYPE and sort in decreasing order.</span>
+<span class="nv">storm_ecoloss_revised</span> <span class="o">&lt;-</span> ddply(<span class="nv">ecoloss_revised</span>,.(<span class="nv">EVTYPE</span>), <span class="nv">summarize</span>, <span class="nv">sum_eco</span> <span class="o">=</span> sum(<span class="nv">total_loss</span>))
+<span class="nv">ecoloss_order_revised</span> <span class="o">&lt;-</span> <span class="nv">storm_ecoloss_revised</span>[order(<span class="nv">storm_ecoloss_revised</span><span class="k">$</span><span class="nv">sum_eco</span>, <span class="nv">decreasing</span> <span class="o">=</span> <span class="kc">TRUE</span>),]
+
+<span class="c1">#select only top 10 rows, and change the unit of ecoloss to $billion. store value in dataframe *top_ecoloss*</span>
+<span class="nv">ecoloss_top</span> <span class="o">&lt;-</span> <span class="nv">ecoloss_order_revised</span>[<span class="m">1</span><span class="k">:</span><span class="m">10</span>,]
+<span class="nv">ecoloss_top</span><span class="k">$</span><span class="nv">sum_eco</span> <span class="o">&lt;-</span> <span class="nv">ecoloss_top</span><span class="k">$</span><span class="nv">sum_eco</span><span class="o">/</span><span class="m">10</span><span class="o">^</span><span class="m">9</span>
+<span class="nv">ecoloss_top</span></pre></div>
+
+<pre><code>##           EVTYPE sum_eco
+## 120        FLOOD 182.640
+## 273    HURRICANE  86.524
+## 595      TORNADO  57.362
+## 422  RIP CURRENT  48.055
+## 198         HAIL  20.364
+## 798 WINTER STORM  18.661
+## 690         WIND  18.230
+## 74       DROUGHT  15.019
+## 227         HEAT   9.307
+## 687   WILD FIRES   8.793
+</code></pre>
+
+<h2>
+<a id="results" class="anchor" href="#results" aria-hidden="true"><span class="octicon octicon-link"></span></a>RESULTS</h2>
+
+<h3>
+<a id="1plot-event-types-in-relation-with-population-health" class="anchor" href="#1plot-event-types-in-relation-with-population-health" aria-hidden="true"><span class="octicon octicon-link"></span></a>1.plot event types in relation with population health.</h3>
+
+<p>make plots(fatal_top, injur_top) to show the Top 10 most harmful event types (as indicated in the EVTYPE variable) with respect to population health across the United States</p>
+
+<div class="highlight highlight-r"><pre>library(<span class="nv">ggplot2</span>)
+<span class="nv">g</span> <span class="o">&lt;-</span> ggplot(<span class="nv">fatal_top</span>, aes(<span class="nv">EVTYPE</span>, <span class="nv">sum_fatal</span>))
+<span class="nv">plot_fatal</span> <span class="o">&lt;-</span> <span class="nv">g</span> <span class="o">+</span> geom_histogram(<span class="nv">stat</span> <span class="o">=</span> <span class="s2">"identity"</span>)<span class="o">+</span>aes(<span class="nv">fill</span> <span class="o">=</span> <span class="o">-</span><span class="nv">sum_fatal</span>, reorder(<span class="nv">EVTYPE</span>, <span class="o">-</span><span class="nv">sum_fatal</span>))<span class="o">+</span>scale_fill_gradient(<span class="s2">"number in thousand"</span>) <span class="o">+</span> labs(<span class="nv">x</span> <span class="o">=</span> <span class="s2">"event type"</span>, <span class="nv">y</span> <span class="o">=</span> <span class="s2">"number of fatalities(thousands)"</span>, <span class="nv">title</span> <span class="o">=</span> <span class="s2">"Top 10 weather events causing fatalities"</span>) <span class="o">+</span> theme(<span class="nv">axis.text.x</span> <span class="o">=</span> element_text(<span class="nv">angle</span><span class="o">=</span><span class="m">20</span>, <span class="nv">hjust</span><span class="o">=</span><span class="m">1</span>))
+print(<span class="nv">plot_fatal</span>)</pre></div>
+
+<p><img src="./project2_files/figure-html/histogram_health1.png" alt="plot of chunk histogram_health"> </p>
+
+<div class="highlight highlight-r"><pre><span class="nv">g</span> <span class="o">&lt;-</span> ggplot(<span class="nv">injur_top</span>, aes(<span class="nv">EVTYPE</span>, <span class="nv">sum_injur</span>))
+<span class="nv">plot_injur</span> <span class="o">&lt;-</span> <span class="nv">g</span> <span class="o">+</span> geom_histogram(<span class="nv">stat</span> <span class="o">=</span> <span class="s2">"identity"</span>)<span class="o">+</span>aes(<span class="nv">fill</span> <span class="o">=</span> <span class="o">-</span><span class="nv">sum_injur</span>, reorder(<span class="nv">EVTYPE</span>, <span class="o">-</span><span class="nv">sum_injur</span>))<span class="o">+</span>scale_fill_gradient(<span class="s2">"number in thousand"</span>) <span class="o">+</span> labs(<span class="nv">x</span> <span class="o">=</span> <span class="s2">"event type"</span>, <span class="nv">y</span> <span class="o">=</span> <span class="s2">"number of injuries(thousands)"</span>, <span class="nv">title</span> <span class="o">=</span> <span class="s2">"Top 10 weather events causing injuries"</span>) <span class="o">+</span> theme(<span class="nv">axis.text.x</span> <span class="o">=</span> element_text(<span class="nv">angle</span><span class="o">=</span><span class="m">20</span>, <span class="nv">hjust</span><span class="o">=</span><span class="m">1</span>))
+print(<span class="nv">plot_injur</span>)</pre></div>
+
+<p><img src="./project2_files/figure-html/histogram_health2.png" alt="plot of chunk histogram_health"> </p>
+
+<h3>
+<a id="2plot-severe-event-types-in-relation-to-economic-consequences" class="anchor" href="#2plot-severe-event-types-in-relation-to-economic-consequences" aria-hidden="true"><span class="octicon octicon-link"></span></a>2.plot severe event types in relation to economic consequences</h3>
+
+<p>make plots(ecoloss_top) to show the Top 10 most harmful event types (as indicated in the EVTYPE variable) with respect to economic loss across the United States</p>
+
+<div class="highlight highlight-r"><pre><span class="nv">g</span> <span class="o">&lt;-</span> ggplot(<span class="nv">ecoloss_top</span>, aes(<span class="nv">EVTYPE</span>, <span class="nv">sum_eco</span>))
+<span class="nv">plot_ecoloss</span> <span class="o">&lt;-</span> <span class="nv">g</span> <span class="o">+</span> geom_histogram(<span class="nv">stat</span> <span class="o">=</span> <span class="s2">"identity"</span>)<span class="o">+</span>aes(<span class="nv">fill</span> <span class="o">=</span> <span class="o">-</span><span class="nv">sum_eco</span>, reorder(<span class="nv">EVTYPE</span>, <span class="o">-</span><span class="nv">sum_eco</span>))<span class="o">+</span>scale_fill_gradient(<span class="s2">"loss in billion"</span>, <span class="nv">low</span> <span class="o">=</span> <span class="s2">"red"</span>, <span class="nv">high</span> <span class="o">=</span> <span class="s2">"green"</span>) <span class="o">+</span> labs(<span class="nv">x</span> <span class="o">=</span> <span class="s2">"event type"</span>, <span class="nv">y</span> <span class="o">=</span> <span class="s2">"economic loss in $billion"</span>, <span class="nv">title</span> <span class="o">=</span> <span class="s2">"Top 10 weather events causing economic loss"</span>) <span class="o">+</span> theme(<span class="nv">axis.text.x</span> <span class="o">=</span> element_text(<span class="nv">angle</span><span class="o">=</span><span class="m">20</span>, <span class="nv">hjust</span><span class="o">=</span><span class="m">1</span>))
+print(<span class="nv">plot_ecoloss</span>)</pre></div>
+
+<p><img src="./project2_files/figure-html/histogram_ecoloss.png" alt="plot of chunk histogram_ecoloss"> </p>
+
+<h3>
+<a id="3-summary" class="anchor" href="#3-summary" aria-hidden="true"><span class="octicon octicon-link"></span></a>3. Summary</h3>
+
+<ul>
+<li>Across the United States, Top4 most severe weather event types with respect to population health are: Tornado, Heat, Flood, and Wind. Among all of the weather event types, Tornado is the most severe one, and it has much more impact on population health with respect to both Fatalities and Injuries. </li>
+<li>Across the United States, Top4 types of events with respect to the economic consequences are: Flood, HURRICANE, TORNADO, RIP CURRENT. Among all of the weather event types, Flood is the most severe one, and it has much more impact on economic consequences than the other ones.</li>
+</ul>
+
+<h2>
+<a id="thought-for-further-discussion" class="anchor" href="#thought-for-further-discussion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Thought for further discussion:</h2>
+
+<ul>
+<li>I merge the similar EVTYPE names only for the top20 in each ranking because of the time limit. Change the similar names using regular expression for all of them can make the analysis more precisely. </li>
+<li>I didn't incluse state and date variables in my processed dataframe. Including them will make us to explore more questions, for instance, to understand the economic loss trend for each state, to explore which state account for the most of the flood or tornado?</li>
+</ul>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/shinezhou9">shinezhou9</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
