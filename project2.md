@@ -1,14 +1,20 @@
-Severe weather events with respect to population health and economic consequeces
+Health and Economic Impact of Weather Events in the US?
 ========================================================
 ## Synopsis:
  1. Objective: explore the NOAA Storm Database to find out the most severe types of events(EVTYPE variable) with respect to population health and economic consequences.
  2. Population health include two related variables: "FATALITIES(fatalities number)", "INJURIES(injuries number)". Here I made statistics analysis seperately on these two variables.
  3. Economic consequeces include four related variables: "PROPDMG(property damage number)", "PROPDMGEXP(exponent for property damage)", "CROPDMG(crop damage number)", "CROPDMGEXP(exponent for crop damage)". I make statictic analysis based on the sum of property and crop damages costs.
- 4. I rank the top 10 weather event types for each index. From the plots showed on this report, we can see top10 has include the most severe weather event types.
+ 4. We ranked the top 10 weather event types for each index. From the plots showed on this report, we can see top10 has include the most severe weather event types.
  5. Conclusion: Across the United States, Tornado is the most severe event type with respect to population health; Flood is the most severe event type with respect to economic consequences. 
 
+## Data
+
+- Dataset: U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database [storm data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2)
+- This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.
+- The dataset is stored in a comma-separated-value file compressed via the bzip2 algorithm to reduce its size and there are a total of 902297 observations and 37 variables in this dataset
+
  
-## Cleaning data stratergies.
+## Cleaning up data stratergies.
 ### 1. Merging ENTYPE similar names:
 EVTYPE variable includes many names which are similar with each other. We need to clean up them and merge the similar ones. But since there are hundreds of different event types names, it is a time costly work we clean one by one. 
 - sort ENTYPE in normal ways based on the fatalities number regardless of the ENTYPE, and then merge the similar ENTYPE names only for top20 fatalities causing event types. 
@@ -352,29 +358,30 @@ make plots(fatal_top, injur_top) to show the Top 10 most harmful event types (as
 ```r
 library(ggplot2)
 g <- ggplot(fatal_top, aes(EVTYPE, sum_fatal))
-plot_fatal <- g + geom_histogram(stat = "identity")+aes(fill = EVTYPE, reorder(EVTYPE, -sum_fatal))+ labs(x = "event type", y = "number of fatalities(thousands)", title = "Top 10 weather events causing fatalities") + theme(axis.text.x = element_text(angle=20, hjust=1))
+plot_fatal <- g + geom_histogram(stat = "identity")+aes(fill = -sum_fatal, reorder(EVTYPE, -sum_fatal))+scale_fill_gradient("number in thousand") + labs(x = "event type", y = "number of fatalities(thousands)", title = "Top 10 weather events causing fatalities") + theme(axis.text.x = element_text(angle=20, hjust=1))
 print(plot_fatal)
 ```
 
-![plot of chunk histogram_health](figure/histogram_health1.png) 
+![plot of chunk histogram_health](./project2_files/figure-html/histogram_health1.png) 
 
 ```r
 g <- ggplot(injur_top, aes(EVTYPE, sum_injur))
-plot_injur <- g + geom_histogram(stat = "identity")+aes(fill = EVTYPE, reorder(EVTYPE, -sum_injur))+ labs(x = "event type", y = "number of injuries(thousands)", title = "Top 10 weather events causing injuries") + theme(axis.text.x = element_text(angle=20, hjust=1))
+plot_injur <- g + geom_histogram(stat = "identity")+aes(fill = -sum_injur, reorder(EVTYPE, -sum_injur))+scale_fill_gradient("number in thousand") + labs(x = "event type", y = "number of injuries(thousands)", title = "Top 10 weather events causing injuries") + theme(axis.text.x = element_text(angle=20, hjust=1))
 print(plot_injur)
 ```
 
-![plot of chunk histogram_health](figure/histogram_health2.png) 
+![plot of chunk histogram_health](./project2_files/figure-html/histogram_health2.png) 
+
 ### 2.plot severe event types in relation to economic consequences
 make plots(ecoloss_top) to show the Top 10 most harmful event types (as indicated in the EVTYPE variable) with respect to economic loss across the United States
 
 ```r
 g <- ggplot(ecoloss_top, aes(EVTYPE, sum_eco))
-plot_ecoloss <- g + geom_histogram(stat = "identity")+aes(fill = EVTYPE, reorder(EVTYPE, -sum_eco))+ labs(x = "event type", y = "economic loss in $billion", title = "Top 10 weather events causing economic loss") + theme(axis.text.x = element_text(angle=20, hjust=1))
+plot_ecoloss <- g + geom_histogram(stat = "identity")+aes(fill = -sum_eco, reorder(EVTYPE, -sum_eco))+scale_fill_gradient("loss in billion", low = "red", high = "green") + labs(x = "event type", y = "economic loss in $billion", title = "Top 10 weather events causing economic loss") + theme(axis.text.x = element_text(angle=20, hjust=1))
 print(plot_ecoloss)
 ```
 
-![plot of chunk histogram_ecoloss](figure/histogram_ecoloss.png) 
+![plot of chunk histogram_ecoloss](./project2_files/figure-html/histogram_ecoloss.png) 
 
 ### 3. Summary
 - Across the United States, Top4 most severe weather event types with respect to population health are: Tornado, Heat, Flood, and Wind. Among all of the weather event types, Tornado is the most severe one, and it has much more impact on population health with respect to both Fatalities and Injuries. 
